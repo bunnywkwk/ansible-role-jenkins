@@ -83,6 +83,7 @@ At start, Jenkins reads `casc.yaml` (JCasC): admin login, security, executors, b
 | `CONFIG \| Read the jenkins user's UID` | `getent passwd jenkins` | The UID goes into `/run/user/<uid>` in the override; it differs per host |
 | `CONFIG \| Create JENKINS_HOME` | `jenkins:jenkins 0750` | Needed when `jenkins_home` is not the RPM default |
 | `CONFIG \| Make JENKINS_HOME the jenkins user's home` | `usermod -d` when they differ | Rootless Podman stores images in `~/.local/share/containers`: keep them on the large disk too. Fails if Jenkins is running (change it on a fresh host) |
+| `CONFIG \| Create the systemd drop-in folder` | `/etc/systemd/system/jenkins.service.d/`, `root:root 0755` | No package creates it, and `template` does not make parent folders (T-J1) |
 | `CONFIG \| Install the systemd override` | `jenkins.service.d/override.conf` | Changes only home, port, JVM options, JCasC path and the Podman runtime dir; the RPM's unit stays as shipped (D2) |
 | `CONFIG \| Write the plugin list` | `plugins.txt` in `JENKINS_HOME` | A change runs the plugin manager, then restarts |
 | `CONFIG \| Write the JCasC file` | `casc.yaml`, `0600`, `diff: false` | Holds the admin password; `diff: false` keeps it out of `--diff` output |

@@ -19,6 +19,15 @@
     name: "{{ jenkins_user }}"
     home: "{{ jenkins_home }}"
 
+# Drop-in folder: neither the RPM nor systemd creates it, and template does not create parent folders
+- name: "CONFIG | Create the systemd drop-in folder"
+  ansible.builtin.file:
+    path: "{{ jenkins_override_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: "CONFIG | Install the systemd override (home, port, JVM, JCasC, Podman runtime dir)"
   ansible.builtin.template:
     src: override.conf.j2
