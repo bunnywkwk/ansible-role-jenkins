@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+# Drop-in for the RPM's jenkins.service: only these lines change, the rest stays the package's.
+[Service]
+Environment="JENKINS_HOME={{ jenkins_home }}"
+WorkingDirectory={{ jenkins_home }}
+Environment="JENKINS_PORT={{ jenkins_port }}"
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false {{ jenkins_java_opts }}"
+Environment="CASC_JENKINS_CONFIG={{ jenkins_casc_path }}"
+# Rootless Podman in pipeline sh steps needs the jenkins user's runtime dir and bus (linger creates them)
+Environment="XDG_RUNTIME_DIR=/run/user/{{ jenkins_uid }}"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ jenkins_uid }}/bus"

@@ -1,0 +1,18 @@
+---
+# Handlers run in this order: plugins first, then the restart that loads them.
+# runuser: the plugin files must belong to jenkins; --war picks plugin versions that fit this Jenkins.
+- name: Install jenkins plugins
+  ansible.builtin.command:
+    cmd: >-
+      runuser -u {{ jenkins_user }} --
+      java -jar {{ jenkins_plugin_manager_jar }}
+      --war {{ jenkins_war }}
+      --plugin-download-directory {{ jenkins_home }}/plugins
+      --plugin-file {{ jenkins_plugins_file }}
+  changed_when: true
+
+- name: Restart jenkins
+  ansible.builtin.systemd_service:
+    name: "{{ jenkins_service }}"
+    state: restarted
+    daemon_reload: true   # picks up a changed override.conf

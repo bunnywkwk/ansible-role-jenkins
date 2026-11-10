@@ -1,0 +1,29 @@
+---
+# Rootless Podman maps container users onto these host IDs. The RPM creates jenkins as a
+# system user, which gets no range by default.
+- name: "PODMAN | Give jenkins a subordinate UID and GID range"
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: "^{{ jenkins_user }}:"
+    line: "{{ jenkins_user }}:{{ jenkins_subid_start }}:65536"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - /etc/subuid
+    - /etc/subgid
+
+# jenkins never logs in; linger starts its user manager and /run/user/<uid> at boot,
+# where rootless Podman keeps its runtime files.
+- name: "PODMAN | Enable linger for jenkins"
+  ansible.builtin.command:
+    cmd: loginctl enable-linger {{ jenkins_user }}
+    creates: /var/lib/systemd/linger/{{ jenkins_user }}
+
+- name: "PODMAN | Allow the plain-HTTP registries"
+  ansible.builtin.template:
+    src: insecure-registries.conf.j2
+    dest: "{{ jenkins_registries_conf }}"
+    owner: root
+    group: root
+    mode: "0644"

@@ -1,0 +1,53 @@
+---
+- name: "CONFIG | Read the jenkins user's UID"
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ jenkins_user }}"
+
+- name: "CONFIG | Create JENKINS_HOME"
+  ansible.builtin.file:
+    path: "{{ jenkins_home }}"
+    state: directory
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0750"
+
+# Rootless Podman stores images under the user's home: keep them on the same large disk.
+# Fails if Jenkins is running, so change jenkins_home only on a stopped or fresh host.
+- name: "CONFIG | Make JENKINS_HOME the jenkins user's home"
+  ansible.builtin.user:
+    name: "{{ jenkins_user }}"
+    home: "{{ jenkins_home }}"
+
+- name: "CONFIG | Install the systemd override (home, port, JVM, JCasC, Podman runtime dir)"
+  ansible.builtin.template:
+    src: override.conf.j2
+    dest: "{{ jenkins_override_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    jenkins_uid: "{{ ansible_facts['getent_passwd'][jenkins_user][1] }}"
+  notify: Restart jenkins
+
+- name: "CONFIG | Write the plugin list"
+  ansible.builtin.template:
+    src: plugins.txt.j2
+    dest: "{{ jenkins_plugins_file }}"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0644"
+  notify:
+    - Install jenkins plugins
+    - Restart jenkins
+
+# diff: false keeps the passwords out of --diff output
+- name: "CONFIG | Write the JCasC file"
+  ansible.builtin.template:
+    src: casc.yaml.j2
+    dest: "{{ jenkins_casc_path }}"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0600"
+  diff: false
+  notify: Restart jenkins

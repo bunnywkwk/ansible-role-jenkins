@@ -1,0 +1,42 @@
+# {{ ansible_managed }}
+# Jenkins Configuration as Code: applied at every start. Values are JSON-quoted, so any character is safe
+# except "${", which JCasC reads as a variable.
+jenkins:
+  numExecutors: {{ jenkins_executors }}
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: {{ jenkins_admin_user | to_json }}
+          password: {{ jenkins_admin_password | to_json }}
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+{% if jenkins_url %}
+  location:
+    url: {{ jenkins_url | to_json }}
+{% endif %}
+  buildDiscarders:
+    configuredBuildDiscarders:
+      - "jobBuildDiscarder"
+      - simpleBuildDiscarder:
+          discarder:
+            logRotator:
+              numToKeepStr: "{{ jenkins_builds_to_keep }}"
+{% if jenkins_credentials %}
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+{% for cred in jenkins_credentials %}
+          - usernamePassword:
+              scope: GLOBAL
+              id: {{ cred.id | to_json }}
+              username: {{ cred.username | to_json }}
+              password: {{ cred.password | to_json }}
+              description: {{ cred.description | default(cred.id) | to_json }}
+{% endfor %}
+{% endif %}

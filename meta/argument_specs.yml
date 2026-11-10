@@ -1,0 +1,94 @@
+---
+# Checked before any task runs: a missing admin password or a wrong type stops the play with a clear message.
+argument_specs:
+  main:
+    short_description: Jenkins LTS on RHEL 9 with JCasC, plugins and rootless Podman builds.
+    options:
+      jenkins_admin_password:
+        type: str
+        required: true
+        no_log: true
+        description: Admin password, from ansible-vault.
+      jenkins_admin_user:
+        type: str
+        default: admin
+        description: Admin login name.
+      jenkins_version:
+        type: str
+        default: "2.580.2"
+        description: Jenkins LTS version (RPM).
+      jenkins_java_package:
+        type: str
+        default: java-21-openjdk-headless
+        description: Java runtime package.
+      jenkins_port:
+        type: int
+        default: 8080
+        description: HTTP port.
+      jenkins_home:
+        type: path
+        default: /var/lib/jenkins
+        description: JENKINS_HOME and the jenkins user's home; put it on the large disk.
+      jenkins_java_opts:
+        type: str
+        default: ""
+        description: Extra JVM options.
+      jenkins_url:
+        type: str
+        default: ""
+        description: Jenkins root URL; empty = not set.
+      jenkins_executors:
+        type: int
+        default: 2
+        description: Builds that run at once.
+      jenkins_builds_to_keep:
+        type: int
+        default: 30
+        description: Builds kept per job.
+      jenkins_plugins:
+        type: list
+        elements: str
+        description: Plugins, "name" or "name:version".
+      jenkins_plugin_manager_version:
+        type: str
+        default: "2.13.2"
+        description: plugin-installation-manager-tool release.
+      jenkins_credentials:
+        type: list
+        elements: dict
+        default: []
+        description: Username/password credentials for pipelines.
+        options:
+          id:
+            type: str
+            required: true
+          username:
+            type: str
+            required: true
+          password:
+            type: str
+            required: true
+            no_log: true
+          description:
+            type: str
+      jenkins_build_packages:
+        type: list
+        elements: str
+        description: Build tools from the RHEL 9 repos.
+      jenkins_yq_version:
+        type: str
+        default: v4.44.3
+        description: yq release.
+      jenkins_subid_start:
+        type: int
+        default: 786432
+        description: First subordinate UID/GID for rootless Podman.
+      jenkins_insecure_registries:
+        type: list
+        elements: str
+        default: []
+        description: Plain-HTTP registries Podman may use.
+      jenkins_manage_firewall:
+        type: bool
+        default: true
+        description: Open jenkins_port in firewalld.

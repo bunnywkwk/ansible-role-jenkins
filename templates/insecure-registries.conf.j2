@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# Registries Podman may use over plain HTTP.
+{% for registry in jenkins_insecure_registries %}
+
+[[registry]]
+location = "{{ registry }}"
+insecure = true
+{% endfor %}

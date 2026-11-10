@@ -1,0 +1,16 @@
+---
+- name: Install Jenkins, Java and the build tools
+  ansible.builtin.import_tasks:
+    file: install.yml
+
+- name: Set up rootless Podman for the jenkins user
+  ansible.builtin.import_tasks:
+    file: podman.yml
+
+- name: Configure Jenkins
+  ansible.builtin.import_tasks:
+    file: config.yml
+
+- name: Run Jenkins
+  ansible.builtin.import_tasks:
+    file: service.yml

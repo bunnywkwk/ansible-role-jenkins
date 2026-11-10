@@ -1,0 +1,20 @@
+---
+# jenkins internal fixed values (not set by users; their choices are in defaults/main.yml).
+
+## Package repository (pkg.jenkins.io, as on the workstation)
+jenkins_repo_url: https://pkg.jenkins.io/rpm-stable
+jenkins_repo_key: https://pkg.jenkins.io/rpm-stable/repodata/repomd.xml.key
+jenkins_war: /usr/share/java/jenkins.war   # installed by the RPM
+jenkins_service: jenkins
+jenkins_user: jenkins                      # created by the RPM
+
+## Files the role writes
+jenkins_override_path: /etc/systemd/system/jenkins.service.d/override.conf
+jenkins_casc_path: "{{ jenkins_home }}/casc.yaml"
+jenkins_plugins_file: "{{ jenkins_home }}/plugins.txt"
+jenkins_registries_conf: /etc/containers/registries.conf.d/50-jenkins-insecure.conf
+
+## Downloads
+jenkins_plugin_manager_jar: "/usr/local/lib/jenkins-plugin-manager-{{ jenkins_plugin_manager_version }}.jar"
+jenkins_plugin_manager_url: "https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/{{ jenkins_plugin_manager_version }}/jenkins-plugin-manager-{{ jenkins_plugin_manager_version }}.jar"
+jenkins_yq_url: "https://github.com/mikefarah/yq/releases/download/{{ jenkins_yq_version }}/yq_linux_amd64"

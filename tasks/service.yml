@@ -1,0 +1,19 @@
+---
+# Plugins (JCasC among them) must be on disk before Jenkins first starts, or the setup is not applied.
+- name: "SERVICE | Install plugins and apply changes before the start"
+  ansible.builtin.meta: flush_handlers
+
+- name: "SERVICE | Start and enable Jenkins"
+  ansible.builtin.systemd_service:
+    name: "{{ jenkins_service }}"
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: "SERVICE | Open the Jenkins port"
+  when: jenkins_manage_firewall
+  ansible.posix.firewalld:
+    port: "{{ jenkins_port }}/tcp"
+    permanent: true
+    immediate: true
+    state: enabled

@@ -1,0 +1,39 @@
+---
+- name: "INSTALL | Import the Jenkins package signing key"
+  ansible.builtin.rpm_key:
+    key: "{{ jenkins_repo_key }}"
+    state: present
+
+- name: "INSTALL | Add the Jenkins LTS repository"
+  ansible.builtin.yum_repository:
+    name: jenkins
+    description: Jenkins LTS
+    baseurl: "{{ jenkins_repo_url }}"
+    gpgkey: "{{ jenkins_repo_key }}"
+    gpgcheck: true
+    enabled: true
+
+# fontconfig: Jenkins draws graphs and fonts with it (Jenkins' RHEL install docs)
+- name: "INSTALL | Install Jenkins, Java and the build tools"
+  ansible.builtin.dnf:
+    name: "{{ ['jenkins-' ~ jenkins_version, jenkins_java_package, 'fontconfig'] + jenkins_build_packages }}"
+    state: present
+
+# shortcut: no checksum and no upgrade (an existing yq is kept); add checksums before real use
+- name: "INSTALL | Install yq"
+  ansible.builtin.get_url:
+    url: "{{ jenkins_yq_url }}"
+    dest: /usr/local/bin/yq
+    owner: root
+    group: root
+    mode: "0755"
+
+# The version is in the file name, so a new jenkins_plugin_manager_version downloads again.
+# shortcut: no checksum; add one before real use
+- name: "INSTALL | Download the Jenkins plugin manager"
+  ansible.builtin.get_url:
+    url: "{{ jenkins_plugin_manager_url }}"
+    dest: "{{ jenkins_plugin_manager_jar }}"
+    owner: root
+    group: root
+    mode: "0644"

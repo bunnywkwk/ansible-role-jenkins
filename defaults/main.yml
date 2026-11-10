@@ -1,0 +1,67 @@
+---
+# jenkins: Jenkins LTS on RHEL 9, configured as code, building images with rootless Podman. Override any of these in group_vars.
+
+## Version
+
+jenkins_version: "2.580.2"                        # LTS, from pkg.jenkins.io/rpm-stable (same as the workstation)
+jenkins_java_package: java-21-openjdk-headless    # a Java release Jenkins supports; the workstation runs 25
+
+## Service
+
+jenkins_port: 8080
+jenkins_home: /var/lib/jenkins   # jobs, builds, plugins; put it on the large disk. Also the jenkins user's home, so its Podman images live here too
+jenkins_java_opts: ""            # extra JVM options, e.g. "-Xmx1g"
+jenkins_url: ""                  # e.g. "http://192.168.122.135:8080/"; used in links Jenkins sends (GitHub statuses). Empty = not set
+
+## Admin login (JCasC)
+
+jenkins_admin_user: admin
+# jenkins_admin_password has no default on purpose: set it in group_vars with ansible-vault encrypt_string.
+
+## Builds
+
+jenkins_executors: 2          # builds that run at once on this host
+jenkins_builds_to_keep: 30    # per job; older builds are deleted (disk grows fast)
+
+## Plugins
+# Dependencies come automatically. Add "name:version" to pin one.
+
+jenkins_plugins:
+  - configuration-as-code   # JCasC: login, security and credentials from casc.yaml
+  - workflow-aggregator     # Pipeline: Jenkinsfile, stages, sh
+  - git                     # checkout from git
+  - github-branch-source    # multibranch jobs from GitHub: BRANCH_NAME, TAG_NAME, pull requests
+  - basic-branch-build-strategies   # lets a multibranch job build tags (TAG_NAME releases); without it tags are found but never built
+  - credentials-binding     # withCredentials { ... }
+  - junit                   # junit step: test reports, e.g. from pytest --junitxml
+  - timestamper             # timestamps() in the console log
+  - ws-cleanup              # cleanWs()
+  - pipeline-graph-view     # stage view of each run
+jenkins_plugin_manager_version: "2.13.2"   # jenkinsci/plugin-installation-manager-tool release
+
+## Credentials (JCasC)
+# Username + password/token pairs pipelines use with withCredentials. Passwords from ansible-vault.
+#   jenkins_credentials:
+#     - id: github-credentials
+#       username: bunnywkwk
+#       password: "{{ vault_github_token }}"
+#       description: GitHub token for the GitOps push
+jenkins_credentials: []
+
+## Build tools
+
+jenkins_build_packages:   # from the RHEL 9 repos; curl is already in the OS
+  - git
+  - podman                # podman build/push/run; no Docker
+  - jq
+  - make
+jenkins_yq_version: v4.44.3   # mikefarah/yq release (not in the RHEL repos)
+
+## Rootless Podman for the jenkins user
+
+jenkins_subid_start: 786432        # first of 65536 subordinate UIDs/GIDs; must not overlap another user's range in /etc/subuid
+jenkins_insecure_registries: []    # plain-HTTP registries Podman may push to, e.g. ["localhost:5000"]
+
+## Firewall
+
+jenkins_manage_firewall: true   # open jenkins_port in firewalld
