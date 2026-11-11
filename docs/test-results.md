@@ -1,7 +1,9 @@
 # Test results — `jenkins`
 
 Checks that prove the role works, with the exact command and the expected result. **Result** says what actually happened; `not run` means no evidence yet.
-Test project: `/home/bunny/cicd-automation/ci-host-test` (inventory: `rhel9-ci` = 192.168.122.135, user `frqadmin`).
+Lab playbook: `/home/bunny/cicd-automation/cicd_lab_master` (inventory: `rhel9-ci` = 192.168.122.135, user `frqadmin`).
+
+**Changed 2026-11-11:** the test projects `ci-host-test/` and `k3s-test/` were replaced by one lab playbook, `cicd_lab_master/` (user request). Results dated before that were run from the old projects; their logs moved to `cicd_lab_master/runs/`.
 
 ## Static checks (workstation, no VM)
 
@@ -15,12 +17,12 @@ S-3 proves the files are valid YAML/TOML, **not** that JCasC accepts every key; 
 
 ## Runtime checks (RHEL 9 VM)
 
-Run from `ci-host-test/` unless the command says `(VM)`. `(VM as jenkins)` means: on the VM, `cd /tmp && sudo -u jenkins -H env XDG_RUNTIME_DIR=/run/user/$(id -u jenkins) <command>` (the jenkins shell is `/bin/false`, so `sudo -iu jenkins` does not work).
+Run from `cicd_lab_master/` unless the command says `(VM)`. `(VM as jenkins)` means: on the VM, `cd /tmp && sudo -u jenkins -H env XDG_RUNTIME_DIR=/run/user/$(id -u jenkins) <command>` (the jenkins shell is `/bin/false`, so `sudo -iu jenkins` does not work).
 
 | # | Check | Command | Expected | Result |
 |---|-------|---------|----------|--------|
-| V-1 | First run | `ansible-playbook playbooks/site.yml --tags jenkins` | `failed=0`, `changed` > 0 | ✅ implied, no log kept: the V-2 rerun found every change already applied |
-| V-2 | Idempotent | same, rerun | `changed=0` | ✅ 2026-11-11: `ok=20 changed=0 failed=0`; Jenkins already running (Start task `ok`). Log `ci-host-test/runs/jenkins-v1.log` |
+| V-1 | First run | `ansible-playbook playbooks/main_playbook.yml -J --tags jenkins` | `failed=0`, `changed` > 0 | ✅ implied, no log kept: the V-2 rerun found every change already applied |
+| V-2 | Idempotent | same, rerun | `changed=0` | ✅ 2026-11-11: `ok=20 changed=0 failed=0`; Jenkins already running (Start task `ok`). Log `cicd_lab_master/runs/jenkins-v1.log` |
 | V-3 | Service up | (VM) `systemctl is-active jenkins` and `systemctl show jenkins -p Environment` | `active`; override values present | not run |
 | V-4 | JCasC applied, no wizard | `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.122.135:8080/login`, then log in in a browser | `200`; login page, not "Unlock Jenkins"; Manage Jenkins → Configuration as Code shows `casc.yaml` | ✅ 2026-11-11: `/login` → `200`; admin login worked and a job could be created (no wizard). Configuration as Code page not reported |
 | V-5 | Login enforced | `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.122.135:8080/api/json` | `403` (anonymous has no read) | ✅ 2026-11-11: `403` (JCasC security active) |
@@ -34,7 +36,7 @@ Run from `ci-host-test/` unless the command says `(VM)`. `(VM as jenkins)` means
 
 ### V-12: pipeline builds and pushes
 
-Needs the registry role on the same VM (`--tags registry` first, or a full `site.yml` run). In Jenkins: New Item → Pipeline → paste:
+Needs the registry role on the same VM (`--tags registry` first, or a full `main_playbook.yml` run). In Jenkins: New Item → Pipeline → paste:
 
 ```groovy
 pipeline {
@@ -58,4 +60,4 @@ Expected: build succeeds; the console ends with a catalog containing `test/jenki
 
 ## Evidence
 
-Save each run's output under `ci-host-test/runs/` and fill in the Result column with the date and the key numbers.
+Save each run's output under `cicd_lab_master/runs/` and fill in the Result column with the date and the key numbers.
