@@ -19,18 +19,18 @@ Run from `ci-host-test/` unless the command says `(VM)`. `(VM as jenkins)` means
 
 | # | Check | Command | Expected | Result |
 |---|-------|---------|----------|--------|
-| V-1 | First run | `ansible-playbook playbooks/site.yml --tags jenkins` | `failed=0`, `changed` > 0 | not run |
-| V-2 | Idempotent | same, rerun | `changed=0` | not run |
+| V-1 | First run | `ansible-playbook playbooks/site.yml --tags jenkins` | `failed=0`, `changed` > 0 | ✅ implied, no log kept: the V-2 rerun found every change already applied |
+| V-2 | Idempotent | same, rerun | `changed=0` | ✅ 2026-11-11: `ok=20 changed=0 failed=0`; Jenkins already running (Start task `ok`). Log `ci-host-test/runs/jenkins-v1.log` |
 | V-3 | Service up | (VM) `systemctl is-active jenkins` and `systemctl show jenkins -p Environment` | `active`; override values present | not run |
-| V-4 | JCasC applied, no wizard | `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.122.135:8080/login`, then log in in a browser | `200`; login page, not "Unlock Jenkins"; Manage Jenkins → Configuration as Code shows `casc.yaml` | not run |
-| V-5 | Login enforced | `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.122.135:8080/api/json` | `403` (anonymous has no read) | not run |
+| V-4 | JCasC applied, no wizard | `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.122.135:8080/login`, then log in in a browser | `200`; login page, not "Unlock Jenkins"; Manage Jenkins → Configuration as Code shows `casc.yaml` | ✅ 2026-11-11: `/login` → `200`; admin login worked and a job could be created (no wizard). Configuration as Code page not reported |
+| V-5 | Login enforced | `curl -s -o /dev/null -w '%{http_code}\n' http://192.168.122.135:8080/api/json` | `403` (anonymous has no read) | ✅ 2026-11-11: `403` (JCasC security active) |
 | V-6 | Plugins | Manage Jenkins → Plugins → Installed, or `curl -s -u admin:<pw> 'http://192.168.122.135:8080/pluginManager/api/json?depth=1' \| jq -r '.plugins[].shortName' \| sort` | all of `jenkins_plugins`, no "failed to load" banner | not run |
 | V-7 | Build discarder | Manage Jenkins → System → Global Build Discarders | "Specific build discarder", keep 30 | not run |
 | V-8 | Tools | (VM) `git --version; podman --version; jq --version; yq --version; make --version \| head -1; java -version` | all print a version | not run |
 | V-9 | Rootless Podman as jenkins | (VM as jenkins) `podman info --format '{{.Host.Security.Rootless}} {{.Store.GraphRoot}}'` | `true /var/lib/jenkins/.local/share/containers/storage` | not run |
 | V-10 | Reboot | (VM) `sudo reboot`; then V-3, V-4, V-9 | all pass (linger brings back `/run/user/<uid>`) | not run |
 | V-11 | Firewall | (VM) `sudo firewall-cmd --list-ports` | contains `8080/tcp` | not run |
-| V-12 | Build and push from a job | see [below](#v-12-pipeline-builds-and-pushes) | job green; image in the registry catalog | not run |
+| V-12 | Build and push from a job | see [below](#v-12-pipeline-builds-and-pushes) | job green; image in the registry catalog | ✅ 2026-11-11, user-reported: `smoke-push` succeeded (console not saved) |
 
 ### V-12: pipeline builds and pushes
 
