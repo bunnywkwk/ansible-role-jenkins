@@ -5,7 +5,7 @@ What each file does and why, briefly. Deeper reasons: `Dn` in [design-decisions.
 
 | # | File | Status |
 |---|------|--------|
-| 1 | `meta/main.yml`, `meta/argument_specs.yml` | done |
+| 1 | `meta/main.yml` | done |
 | 2 | `.yamllint`, `.ansible-lint`, `.gitignore` | done, copied from the registry role (from `mongodb-cis`) |
 | 3 | `defaults/main.yml`, `vars/main.yml` | done |
 | 4 | `tasks/main.yml`, `install.yml`, `podman.yml`, `config.yml`, `service.yml` | done, lint clean, not run on a VM yet |
@@ -36,7 +36,6 @@ At start, Jenkins reads `casc.yaml` (JCasC): admin login, security, executors, b
 | File | Does | Why |
 |------|------|-----|
 | `meta/main.yml` | Full name `bunnywkwk.jenkins`, EL 9, ansible-core 2.16, no dependencies | Same rules as the registry role; no dependency on it (values pass through variables) |
-| `meta/argument_specs.yml` | Types checked before the first task; `jenkins_admin_password` **required** | A missing password stops the play at once, not after Jenkins started without a login |
 
 ## 2. `defaults/main.yml` and `vars/main.yml`
 
