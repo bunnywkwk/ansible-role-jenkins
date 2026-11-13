@@ -28,7 +28,7 @@ What the CI host needs and why, mapped to a real Jenkinsfile: [docs/ci-host-requ
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `jenkins_admin_password` | none, **required** | Admin password, from ansible-vault |
+| `jenkins_admin_password` | `admin` | Admin password. Lab default; override it with ansible-vault for anything shared |
 | `jenkins_admin_user` | `admin` | Admin login |
 | `jenkins_version` | `2.580.2` | Jenkins LTS (RPM) |
 | `jenkins_java_package` | `java-21-openjdk-headless` | Java runtime |
@@ -51,7 +51,7 @@ What the CI host needs and why, mapped to a real Jenkinsfile: [docs/ci-host-requ
 
 ```yaml
 # group_vars/ci.yml
-jenkins_admin_password: !vault |     # ansible-vault encrypt_string --name jenkins_admin_password
+jenkins_admin_password: !vault |     # optional (default admin): ansible-vault encrypt_string --name jenkins_admin_password
   ...
 jenkins_insecure_registries:
   - "localhost:5000"
@@ -87,6 +87,7 @@ Then open `http://<host>:8080/` and log in as `admin`: no setup wizard.
 
 ## Known limits
 
+- The default admin password is `admin`: lab only. Override it before Jenkins is reachable by anyone else.
 - Removing a plugin from `jenkins_plugins` does not delete it from disk.
 - `yq` and the plugin manager are downloaded without a checksum, and an existing `yq` is not upgraded.
 - Changing `jenkins_home` on a host where Jenkins runs fails at `usermod`; a non-default `jenkins_home` is not tested (SELinux labels for Podman storage).
