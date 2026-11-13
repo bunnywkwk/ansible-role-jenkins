@@ -35,6 +35,8 @@ Why the role is built this way. Format: **Decision** → **Why** → **Changed**
 
 **Unlike the registry, a login is required:** an open Jenkins lets anyone run any command on the host (script console, a pipeline `sh`).
 
+**Changed 2026-11-11 (user):** `jenkins_admin_password` defaults to `admin` instead of being required. Why: the central CI runs the role with no variables, so a required password failed every test. The login stays on; only the lab default is known. Override it with ansible-vault outside the lab.
+
 ## D5: Rootless Podman as `jenkins`, no Docker
 
 **Decision:** `jenkins` runs `podman` itself (subuid/subgid + linger + runtime dir in the unit). No Docker, no `docker` group.

@@ -61,3 +61,12 @@ Expected: build succeeds; the console ends with a catalog containing `test/jenki
 ## Evidence
 
 Save each run's output under `cicd_lab_master/runs/` and fill in the Result column with the date and the key numbers.
+
+## Central CI (`ansible-pipeline`, job `role-ci/ansible-role-jenkins`)
+
+| # | Build | Pipeline | Result |
+|---|-------|----------|--------|
+| C-1 | `staging` #3, commit `bbdd03f` (branch push: gates only) | branch `branch-gates-only` (`d1dca89`) | ✅ 2026-11-11: no leaks, `VERSION 0.1.0`, YAML lint, ansible-lint production `0 failure(s)` (20 files, incl. `converge.yml` syntax check), Checkov 7 passed / 0 failed. The role does not run on a branch build |
+| C-2 | PR to `main` (gates + VM test on RHEL 9) | | not run |
+
+C-2 needs the `jenkins_admin_password: admin` default pushed first (uncommitted on 2026-11-11): the VM test runs with no variables.
