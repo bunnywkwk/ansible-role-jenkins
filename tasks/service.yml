@@ -3,6 +3,20 @@
 - name: "SERVICE | Install plugins and apply changes before the start"
   ansible.builtin.meta: flush_handlers
 
+# Cloud images (AWS RHEL AMIs) ship firewalld off; started before Jenkins so it never runs unfiltered.
+- name: "SERVICE | Install firewalld"
+  when: jenkins_manage_firewall
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: "SERVICE | Start and enable firewalld"
+  when: jenkins_manage_firewall
+  ansible.builtin.systemd_service:
+    name: firewalld
+    state: started
+    enabled: true
+
 - name: "SERVICE | Start and enable Jenkins"
   ansible.builtin.systemd_service:
     name: "{{ jenkins_service }}"
