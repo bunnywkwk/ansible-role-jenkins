@@ -22,7 +22,7 @@ What the CI host needs and why, mapped to a real Jenkinsfile: [docs/ci-host-requ
 - RHEL 9 with its repos, and access to `pkg.jenkins.io`, `updates.jenkins.io` (plugins) and `github.com` (yq, plugin manager).
 - ansible-core 2.16 or later on the control node.
 - Collections: `ansible-galaxy collection install -r requirements.yml` (`ansible.posix`, for firewalld).
-- firewalld running, unless `jenkins_manage_firewall: false`.
+- firewalld: the role installs and starts it, unless `jenkins_manage_firewall: false`.
 
 ## Variables
 
